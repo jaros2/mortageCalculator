@@ -17,52 +17,55 @@
       </div>
       <div class="form-group">
         <span class="op-options">Opcje nadpłaty:</span>
-        <input type="radio" name="OverpayOptions" id="variableOverpay" value="variablOp" checked>
+        <input type="radio" name="OverpayOptions" id="variableOverpay" v-model="opType" value="variableOp">
         <label class="form-check-label" for="variableOverpay">
           Nadpłacaj kwotę aby rata całkowita była stała w każdym miesiącu
         </label>
 
-        <input type="radio" name="OverpayOptions" id="fixedOverpay" value="fixedOp">
+        <input type="radio" name="OverpayOptions" id="fixedOverpay" v-model="opType" value="fixedOp">
         <label class="form-check-label" for="fixedOverpay">
           Nadpłacaj o taką samą kwotę
         </label>
-        <input type="number" id="op-amount" name="op-amount">
+        <input type="number" id="op-amount" v-model="opAmount" name="op-amount">
       </div>
       <button type="submit">Calculate</button>
     </form>
     <div v-if="showTable">
-      <table>
-        <thead>
-          <tr>
-            <th>Nr raty</th>
-            <th>Rata</th>
-            <th>Rata odsetki</th>
-            <th>Rata kapitał</th>
-            <th>Nadpłata</th>
-            <th>Saldo pozostałe</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="(payment, index) in payments" :key="index">
-            <td>{{ payment.paymentNumber }}</td>
-            <td>{{ payment.paymentAmount }}</td>
-            <td>{{ payment.interestPayment }}</td>
-            <td>{{ payment.principalPayment }}</td>
-            <td> <input type="number" :name="'OP' + payment.paymentNumber" :value="payment.overpayment"
-                @change="modifyOverpayments($event)"> </td>
-            <td>{{ payment.balance }}</td>
-          </tr>
-        </tbody>
-      </table>
+      <section>
+        <table>
+          <thead>
+            <tr>
+              <th>Nr raty</th>
+              <th>Rata</th>
+              <th>Rata odsetki</th>
+              <th>Rata kapitał</th>
+              <th>Nadpłata</th>
+              <th>Saldo pozostałe</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="(payment, index) in payments" :key="index">
+              <td>{{ payment.paymentNumber }}</td>
+              <td>{{ payment.paymentAmount }}</td>
+              <td>{{ payment.interestPayment }}</td>
+              <td>{{ payment.principalPayment }}</td>
+              <td> <input type="number" :name="'OP' + payment.paymentNumber" :value="payment.overpayment"
+                  @change="modifyoverPayments($event)"> </td>
+              <td>{{ payment.balance }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section>
+        <p>Całkowite odsetki: <span class="totalInterest">{{  }}</span></p>
+      </section>
     </div>
 
   </div>
 </template>
 
 <script>
-import { calculatePayments, calculateMothlyPayment } from './calculatePayments.js'
-
-
 export default {
   name: 'App',
   data() {
@@ -72,24 +75,68 @@ export default {
       interestRate: 9.52,
       remainingPayments: 195,
       payments: [],
-      overpayments: {}
+      overPayments: {},
+      opAmount: 0,
+      opType: "variableOp"
 
     }
   },
   methods: {
     onSubmit() {
-      this.payments = calculatePayments(this.loanAmount, this.interestRate, this.remainingPayments, this.overpayments)
+      this.overPayments = {}
+      this.payments = this.calculatePayments()
     },
-    modifyOverpayments(event) {
-      this.overpayments[event.target.name] = event.target.value;
-      this.payments = calculatePayments(this.loanAmount, this.interestRate, this.remainingPayments, this.overpayments)
+    modifyoverPayments(event) {
+      this.overPayments[event.target.name] = event.target.value;
+      this.payments = this.calculatePayments()
+    },
+    calculatePayments() {
+      const monthlyInterestRate = this.interestRate / 1200;
 
+      const payments = [];
+
+      let loanAmount = this.loanAmount;
+      let remainingPayments = this.remainingPayments;
+
+      for (let i = 1; i <= this.remainingPayments; i++) {
+        const monthlyPayment = loanAmount * monthlyInterestRate / (1 - Math.pow(1 + monthlyInterestRate, -(remainingPayments - i + 1)));
+        const interestPayment = loanAmount * monthlyInterestRate;
+        const principalPayment = monthlyPayment - interestPayment;
+
+        let overpayment;
+        //calculate overpayment using user selected options
+        if (this.opType == "variableOp") {
+          overpayment = this.opAmount - monthlyPayment
+        } else if (this.opType == "fixedOp") {
+          overpayment = this.opAmount
+        }
+        if (this.overPayments !== undefined) {
+          overpayment = Number(this.overPayments['OP' + i]) || overpayment
+        }
+
+        const balance = loanAmount - principalPayment - overpayment;
+        const payment = {
+          paymentNumber: i,
+          paymentAmount: monthlyPayment.toFixed(2),
+          interestPayment: interestPayment.toFixed(2),
+          principalPayment: principalPayment.toFixed(2),
+          overpayment: overpayment.toFixed(2),
+          balance: balance.toFixed(2)
+        };
+        payments.push(payment);
+        loanAmount = balance;
+        if (loanAmount < 0) { break }
+
+      }
+
+      return payments;
     }
 
 
   },
   computed: {
-    showTable() { return this.payments.length > 0 }
+    showTable() { return this.payments.length > 0 },
+    totalInterest() { return payments.map(item => item.interestPayment).reduce((prev, next) => prev + next);}
   }
 
 }
@@ -100,30 +147,25 @@ export default {
   font-family: 'Avenir', Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  
+
   color: #2c3e50;
   margin-top: 20px;
 }
 
-form {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-}
 
 div {
-  display: flex;
-  flex-direction: row;
+
   margin-bottom: 10px;
 }
 
 label {
   margin-right: 10px;
-  width: 100px; /* Set the width of the labels to the same value */
+  width: 100px;
+  /* Set the width of the labels to the same value */
 }
 
 input {
-  flex: 1; /* Make the input fill the remaining space */
+
   padding: 5px;
 }
 
