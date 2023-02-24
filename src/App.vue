@@ -12,8 +12,14 @@
         <input type="number" id="interest-rate" name="interest-rate" v-model="interestRate" step="0.01" required>
       </div>
       <div class="form-group">
+        <MonthYearSelector title="Data nastepnej raty:" />
+        
         <label for="remaining-payments">Liczba rat:</label>
-        <input type="number" id="remaining-payments" name="remaining-payments" v-model="remainingPayments" required>
+        <input type="number" id="remaining-payments" name="remaining-payments" v-model="remainingPayments">
+        <span>lub </span>
+        <MonthYearSelector title="Data ostatniej raty:" />
+        <label for="last-payment-date">Data ostatniej raty:</label>
+        <input type="date" id="last-payment-date" name="last-payment-date" v-model="lastPaymentDate">
       </div>
       <div class="form-group">
         <span class="op-options">Opcje nadpłaty:</span>
@@ -32,10 +38,13 @@
     </form>
     <div v-if="showTable">
       <section>
+        <p>Odsetki całkowite: {{ totalInterest }}</p>
+
         <table>
           <thead>
             <tr>
               <th>Nr raty</th>
+              <th>Miesiąc</th>
               <th>Rata</th>
               <th>Rata odsetki</th>
               <th>Rata kapitał</th>
@@ -46,6 +55,7 @@
           <tbody>
             <tr v-for="(payment, index) in payments" :key="index">
               <td>{{ payment.paymentNumber }}</td>
+              <td>Miesiąc x</td>
               <td>{{ payment.paymentAmount }}</td>
               <td>{{ payment.interestPayment }}</td>
               <td>{{ payment.principalPayment }}</td>
@@ -53,12 +63,9 @@
                   @change="modifyoverPayments($event)"> </td>
               <td>{{ payment.balance }}</td>
             </tr>
+            
           </tbody>
         </table>
-      </section>
-
-      <section>
-        <p>Całkowite odsetki: <span class="totalInterest">{{  }}</span></p>
       </section>
     </div>
 
@@ -66,18 +73,26 @@
 </template>
 
 <script>
+import {monthDiff} from './funcLib.js';
+import MonthYearSelector from './components/MonthYearSelector.vue'
+
 export default {
   name: 'App',
+  components: {
+    MonthYearSelector
+  },
   data() {
     return {
       page_title: 'Kalkulator Kredytu',
       loanAmount: 244050,
       interestRate: 9.52,
-      remainingPayments: 195,
       payments: [],
+      remainingPayments: 195,
+      lastPaymentDate: undefined,
       overPayments: {},
       opAmount: 0,
       opType: "variableOp"
+
 
     }
   },
@@ -130,13 +145,28 @@ export default {
       }
 
       return payments;
+    },
+    remainingPaymentsChange() {
+
+    },
+    lastPaymentDateChange() {
+
     }
 
 
   },
   computed: {
     showTable() { return this.payments.length > 0 },
-    totalInterest() { return payments.map(item => item.interestPayment).reduce((prev, next) => prev + next);}
+    totalInterest() { 
+      let totInterest = 0;
+      try {
+        totInterest = this.payments.map(item => parseFloat(item.interestPayment)).reduce((prev, next) => prev + next);
+      } finally {
+        return totInterest;
+      } 
+      
+    }
+    
   }
 
 }
