@@ -12,14 +12,13 @@
         <input type="number" id="interest-rate" name="interest-rate" v-model="interestRate" step="0.01" required>
       </div>
       <div class="form-group">
-        <MonthYearSelector title="Data nastepnej raty:" />
+        <MonthYearSelector title="Data nastepnej raty:" @value-changed="nextPaymentDateChange" />
         
         <label for="remaining-payments">Liczba rat:</label>
-        <input type="number" id="remaining-payments" name="remaining-payments" v-model="remainingPayments">
+        <input type="number" id="remaining-payments" name="remaining-payments" v-model="remainingPayments" @change="remainingPaymentsChange">
         <span>lub </span>
-        <MonthYearSelector title="Data ostatniej raty:" />
-        <label for="last-payment-date">Data ostatniej raty:</label>
-        <input type="date" id="last-payment-date" name="last-payment-date" v-model="lastPaymentDate">
+        <MonthYearSelector title="Data ostatniej raty:" @value-changed="lastPaymentDateChange" />
+        
       </div>
       <div class="form-group">
         <span class="op-options">Opcje nadpłaty:</span>
@@ -30,7 +29,7 @@
 
         <input type="radio" name="OverpayOptions" id="fixedOverpay" v-model="opType" value="fixedOp">
         <label class="form-check-label" for="fixedOverpay">
-          Nadpłacaj o taką samą kwotę
+          Nadpłacaj taką samą kwotę
         </label>
         <input type="number" id="op-amount" v-model="opAmount" name="op-amount">
       </div>
@@ -88,12 +87,11 @@ export default {
       interestRate: 9.52,
       payments: [],
       remainingPayments: 195,
+      nextPaymentDate: undefined,
       lastPaymentDate: undefined,
       overPayments: {},
       opAmount: 0,
       opType: "variableOp"
-
-
     }
   },
   methods: {
@@ -146,11 +144,17 @@ export default {
 
       return payments;
     },
-    remainingPaymentsChange() {
-
+    remainingPaymentsChange(newPaymentNo) {
+      this.remainingPayments = newPaymentNo
+      this.lastPaymentDate = new Date(this.nextPaymentDate).setMonth(this.nextPaymentDate.getMonth() + newPaymentNo)
     },
-    lastPaymentDateChange() {
-
+    lastPaymentDateChange(newDate) {
+      this.lastPaymentDate = newDate
+      this.remainingPayments = monthDiff(this.nextPaymentDate, this.lastPaymentDate)
+    },
+    nextPaymentDateChange(newDate) {
+      this.nextPaymentDate = newDate
+      this.remainingPayments = monthDiff(this.nextPaymentDate, this.lastPaymentDate)
     }
 
 
