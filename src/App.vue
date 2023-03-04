@@ -12,24 +12,22 @@
         <input type="number" id="interest-rate" name="interest-rate" v-model="interestRate" step="0.01" required>
       </div>
       <div class="form-group">
-        <MonthYearSelector title="Data nastepnej raty:" @value-changed="nextPaymentDateChange" />
-        
-        <label for="remaining-payments">Liczba rat:</label>
-        <input type="number" id="remaining-payments" name="remaining-payments" v-model="remainingPayments" @change="remainingPaymentsChange">
+        <MonthYearSelector title="Data nastepnej raty:" @value-changed="nextPaymentDateChange" :initial-month="nextPaymentDate" />
+        <MonthYearSelector title="Data ostatniej raty:" @value-changed="lastPaymentDateChange" :initial-month="lastPaymentDate" />
         <span>lub </span>
-        <MonthYearSelector title="Data ostatniej raty:" @value-changed="lastPaymentDateChange" />
+        <label for="remaining-payments">liczba pozostałych rat:</label>
+        <input type="number" id="remaining-payments" name="remaining-payments" v-model="remainingPayments" @change="remainingPaymentsChange">
         
       </div>
       <div class="form-group">
         <span class="op-options">Opcje nadpłaty:</span>
-        <input type="radio" name="OverpayOptions" id="variableOverpay" v-model="opType" value="variableOp">
-        <label class="form-check-label" for="variableOverpay">
-          Nadpłacaj kwotę aby rata całkowita była stała w każdym miesiącu
-        </label>
-
         <input type="radio" name="OverpayOptions" id="fixedOverpay" v-model="opType" value="fixedOp">
         <label class="form-check-label" for="fixedOverpay">
           Nadpłacaj taką samą kwotę
+        </label>
+        <input type="radio" name="OverpayOptions" id="variableOverpay" v-model="opType" value="variableOp">
+        <label class="form-check-label" for="variableOverpay">
+          Nadpłacaj kwotę aby rata całkowita była stała w każdym miesiącu
         </label>
         <input type="number" id="op-amount" v-model="opAmount" name="op-amount">
       </div>
@@ -37,7 +35,7 @@
     </form>
     <div v-if="showTable">
       <section>
-        <p>Odsetki całkowite: {{ totalInterest }}</p>
+        <p>Odsetki całkowite: {{ totalInterest.toFixed(0) }}</p>
 
         <table>
           <thead>
@@ -54,7 +52,7 @@
           <tbody>
             <tr v-for="(payment, index) in payments" :key="index">
               <td>{{ payment.paymentNumber }}</td>
-              <td>Miesiąc x</td>
+              <td>{{ payment.monthName }}</td>
               <td>{{ payment.paymentAmount }}</td>
               <td>{{ payment.interestPayment }}</td>
               <td>{{ payment.principalPayment }}</td>
@@ -72,7 +70,7 @@
 </template>
 
 <script>
-import {monthDiff} from './funcLib.js';
+import {monthDiff, addMonthsToDate, formatDate} from './funcLib.js';
 import MonthYearSelector from './components/MonthYearSelector.vue'
 
 export default {
@@ -87,12 +85,15 @@ export default {
       interestRate: 9.52,
       payments: [],
       remainingPayments: 195,
-      nextPaymentDate: undefined,
-      lastPaymentDate: undefined,
+      nextPaymentDate: new Date(),
+      lastPaymentDate: new Date(new Date().getFullYear()+30,1,1),
       overPayments: {},
       opAmount: 0,
-      opType: "variableOp"
+      opType: "fixedOp"
     }
+  },
+  mounted() {
+    this.remainingPayments = monthDiff(this.nextPaymentDate, this.lastPaymentDate )
   },
   methods: {
     onSubmit() {
@@ -115,6 +116,7 @@ export default {
         const monthlyPayment = loanAmount * monthlyInterestRate / (1 - Math.pow(1 + monthlyInterestRate, -(remainingPayments - i + 1)));
         const interestPayment = loanAmount * monthlyInterestRate;
         const principalPayment = monthlyPayment - interestPayment;
+        const monthName = formatDate(addMonthsToDate(this.nextPaymentDate, i-1 ));
 
         let overpayment;
         //calculate overpayment using user selected options
@@ -130,6 +132,7 @@ export default {
         const balance = loanAmount - principalPayment - overpayment;
         const payment = {
           paymentNumber: i,
+          monthName: monthName,
           paymentAmount: monthlyPayment.toFixed(2),
           interestPayment: interestPayment.toFixed(2),
           principalPayment: principalPayment.toFixed(2),
@@ -144,9 +147,10 @@ export default {
 
       return payments;
     },
-    remainingPaymentsChange(newPaymentNo) {
-      this.remainingPayments = newPaymentNo
-      this.lastPaymentDate = new Date(this.nextPaymentDate).setMonth(this.nextPaymentDate.getMonth() + newPaymentNo)
+    remainingPaymentsChange(ev) {
+      this.remainingPayments = ev.target.value
+      this.lastPaymentDate = addMonthsToDate(this.nextPaymentDate, this.remainingPayments)
+      
     },
     lastPaymentDateChange(newDate) {
       this.lastPaymentDate = newDate
@@ -192,34 +196,45 @@ div {
   margin-bottom: 10px;
 }
 
+form {
+  font-family: Arial, sans-serif;
+  font-size: 14px;
+}
+
+/* Style form labels */
 label {
-  margin-right: 10px;
-  width: 100px;
-  /* Set the width of the labels to the same value */
+  display: inline-block;
+  width: 150px;
+  margin-bottom: 5px;
 }
 
-input {
-
+/* Style form input fields */
+input[type="number"], select {
   padding: 5px;
+  width: 200px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  box-sizing: border-box;
+  font-size: 14px;
 }
 
-button {
-  margin-top: 10px;
+/* Style form select boxes */
+select {
+  width: 100px;
+  margin-right: 10px;
 }
 
-.form-group {
-  display: block;
+/* Style form submit button */
+input[type="submit"] {
+  background-color: #4CAF50;
+  color: white;
+  padding: 10px 15px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
 }
 
-/* Chrome, Safari, Edge, Opera */
-input::-webkit-outer-spin-button,
-input::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
-
-/* Firefox */
-input[type=number] {
-  -moz-appearance: textfield;
+input[type="submit"]:hover {
+  background-color: #45a049;
 }
 </style>
