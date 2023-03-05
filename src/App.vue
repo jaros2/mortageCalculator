@@ -12,12 +12,15 @@
         <input type="number" id="interest-rate" name="interest-rate" v-model="interestRate" step="0.01" required>
       </div>
       <div class="form-group">
-        <MonthYearSelector title="Data nastepnej raty:" @value-changed="nextPaymentDateChange" :initial-month="nextPaymentDate" />
-        <MonthYearSelector title="Data ostatniej raty:" @value-changed="lastPaymentDateChange" :initial-month="lastPaymentDate" />
+        <MonthYearSelector title="Data nastepnej raty:" @value-changed="nextPaymentDateChange"
+          :selected-date="nextPaymentDate" />
+        <MonthYearSelector title="Data ostatniej raty:" @value-changed="lastPaymentDateChange"
+          :selected-date="lastPaymentDate" />
         <span>lub </span>
         <label for="remaining-payments">liczba pozostałych rat:</label>
-        <input type="number" id="remaining-payments" name="remaining-payments" v-model="remainingPayments" @change="remainingPaymentsChange">
-        
+        <input type="number" id="remaining-payments" name="remaining-payments" v-model="remainingPayments"
+          @change="remainingPaymentsChange">
+
       </div>
       <div class="form-group">
         <span class="op-options">Opcje nadpłaty:</span>
@@ -33,50 +36,21 @@
       </div>
       <button type="submit">Calculate</button>
     </form>
-    <div v-if="showTable">
-      <section>
-        <p>Odsetki całkowite: {{ totalInterest.toFixed(0) }}</p>
-
-        <table>
-          <thead>
-            <tr>
-              <th>Nr raty</th>
-              <th>Miesiąc</th>
-              <th>Rata</th>
-              <th>Rata odsetki</th>
-              <th>Rata kapitał</th>
-              <th>Nadpłata</th>
-              <th>Saldo pozostałe</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="(payment, index) in payments" :key="index">
-              <td>{{ payment.paymentNumber }}</td>
-              <td>{{ payment.monthName }}</td>
-              <td>{{ payment.paymentAmount }}</td>
-              <td>{{ payment.interestPayment }}</td>
-              <td>{{ payment.principalPayment }}</td>
-              <td> <input type="number" :name="'OP' + payment.paymentNumber" :value="payment.overpayment"
-                  @change="modifyoverPayments($event)"> </td>
-              <td>{{ payment.balance }}</td>
-            </tr>
-            
-          </tbody>
-        </table>
-      </section>
-    </div>
+    <p>Odsetki całkowite: {{ totalInterest.toFixed(0) }}</p>
+    <PaymentPlan v-if=showTable :payments="payments" :totalInterest="totalInterest" @modified-op="modifyOverPayments" />
 
   </div>
 </template>
 
 <script>
-import {monthDiff, addMonthsToDate, formatDate} from './funcLib.js';
+import { monthDiff, addMonthsToDate, formatDate } from './funcLib.js';
 import MonthYearSelector from './components/MonthYearSelector.vue'
+import PaymentPlan from './components/PaymentPlan.vue'
 
 export default {
   name: 'App',
   components: {
-    MonthYearSelector
+    MonthYearSelector, PaymentPlan
   },
   data() {
     return {
@@ -86,21 +60,21 @@ export default {
       payments: [],
       remainingPayments: 195,
       nextPaymentDate: new Date(),
-      lastPaymentDate: new Date(new Date().getFullYear()+30,1,1),
+      lastPaymentDate: new Date(new Date().getFullYear() + 30, 1, 1),
       overPayments: {},
       opAmount: 0,
       opType: "fixedOp"
     }
   },
   mounted() {
-    this.remainingPayments = monthDiff(this.nextPaymentDate, this.lastPaymentDate )
+    this.remainingPayments = monthDiff(this.nextPaymentDate, this.lastPaymentDate)
   },
   methods: {
     onSubmit() {
       this.overPayments = {}
       this.payments = this.calculatePayments()
     },
-    modifyoverPayments(event) {
+    modifyOverPayments(event) {
       this.overPayments[event.target.name] = event.target.value;
       this.payments = this.calculatePayments()
     },
@@ -116,7 +90,7 @@ export default {
         const monthlyPayment = loanAmount * monthlyInterestRate / (1 - Math.pow(1 + monthlyInterestRate, -(remainingPayments - i + 1)));
         const interestPayment = loanAmount * monthlyInterestRate;
         const principalPayment = monthlyPayment - interestPayment;
-        const monthName = formatDate(addMonthsToDate(this.nextPaymentDate, i-1 ));
+        const monthName = formatDate(addMonthsToDate(this.nextPaymentDate, i - 1));
 
         let overpayment;
         //calculate overpayment using user selected options
@@ -150,7 +124,7 @@ export default {
     remainingPaymentsChange(ev) {
       this.remainingPayments = ev.target.value
       this.lastPaymentDate = addMonthsToDate(this.nextPaymentDate, this.remainingPayments)
-      
+
     },
     lastPaymentDateChange(newDate) {
       this.lastPaymentDate = newDate
@@ -165,29 +139,34 @@ export default {
   },
   computed: {
     showTable() { return this.payments.length > 0 },
-    totalInterest() { 
+    totalInterest() {
       let totInterest = 0;
       try {
         totInterest = this.payments.map(item => parseFloat(item.interestPayment)).reduce((prev, next) => prev + next);
       } finally {
         return totInterest;
-      } 
-      
+      }
+
     }
-    
+
   }
 
 }
 </script>
 
 <style>
+* {
+  font-size: 1em;
+
+}
+
 #app {
   font-family: 'Avenir', Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-
+  font-size: 1em;
   color: #2c3e50;
-  margin-top: 20px;
+  margin-top: 0.2em;
 }
 
 
@@ -198,7 +177,6 @@ div {
 
 form {
   font-family: Arial, sans-serif;
-  font-size: 14px;
 }
 
 /* Style form labels */
@@ -209,13 +187,14 @@ label {
 }
 
 /* Style form input fields */
-input[type="number"], select {
+input[type="number"],
+select {
   padding: 5px;
   width: 200px;
   border-radius: 5px;
   border: 1px solid #ccc;
   box-sizing: border-box;
-  font-size: 14px;
+  font-size: 1em;
 }
 
 /* Style form select boxes */
