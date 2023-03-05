@@ -2,11 +2,10 @@
     <div class="form-group">
         <label>{{ title }}</label>
         <div class="date-select">
-            <select name="monthSelect" id="monthSelect" @change="$emit('value-changed', currentValue)"
-                :value="selectedMonth">
+            <select name="monthSelect" id="monthSelect" v-model="selectedMonth">
                 <option v-for="(month, index) in months" :key="index" :value='index'>{{ month }}</option>
             </select>
-            <select name="yearSelect" id="yearSelect" @change="$emit('value-changed', currentValue)" :value="selectedYear">
+            <select name="yearSelect" id="yearSelect"  v-model="selectedYear">
                 <option v-for="(year, index) in years" :key="index" :value='year'>{{ year }}</option>
             </select>
         </div>
@@ -22,17 +21,30 @@ export default {
             months: ['Styczeń', 'Luty', 'Marzec',
                 'Kwiecień', 'Maj', 'Czerwiec',
                 'Lipiec', 'Sierpień', 'Wrzesień',
-                'Październik', 'Listopad', 'Grudzień']
+                'Październik', 'Listopad', 'Grudzień'],
+            selectedMonth: this.initialDate.getMonth(),
+            selectedYear: this.initialDate.getFullYear()
 
         }
     },
     props: {
         title: String,
-        selectedDate: {
+        initialDate: {
             type: Date,
             default: new Date()
         }
 
+    },
+    watch: {
+        initialDate() {
+            this.updateSelectedValues()
+        },
+        selectedMonth() {
+            this.emitDate()
+        },
+        selectedYear() {
+            this.emitDate()
+        }
     },
     computed: {
         years() {
@@ -42,11 +54,23 @@ export default {
         },
         currentValue() {
             return new Date(this.selectedYear, this.selectedMonth)
-        },
-        selectedMonth() { return this.selectedDate.getMonth() },
-        selectedYear() { return this.selectedDate.getFullYear() }
+        }
 
     },
+    methods: {
+        emitDate() {
+            if (this.selectedMonth !== null && this.selectedYear !== null) {
+                const date = new Date(this.selectedYear, this.selectedMonth, 1)
+                this.$emit('value-changed', date)
+            }
+        },
+        updateSelectedValues() {
+            if (this.initialDate !== null) {
+                this.selectedMonth = this.initialDate.getMonth()
+                this.selectedYear = this.initialDate.getFullYear()
+            }
+        }
+    }
 
 }
 </script>

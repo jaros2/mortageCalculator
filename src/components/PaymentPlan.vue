@@ -1,7 +1,7 @@
 <template>
     <div>
         <section>
-            table class="payment-plan">
+            <table class="payment-plan">
                 <thead>
                     <tr>
                         <th>Nr raty</th>
@@ -49,9 +49,7 @@ export default {
     },
     methods: {
         modifyOverPayments(event) {
-            $emit('modified-op', event)
-            
-            
+            this.$emit('modified-op', event)
         }
     },
     computed: {
@@ -73,12 +71,12 @@ export default {
 
 <style>
 .payment-plan {
-  width: 70em;
+  width: 70rem;
 }
 
 .payment-plan th {
-  height: 1.7em;
-  padding: 1.2em;
+  height: 1.7rem;
+  padding: 1.2rem;
   font-style: bold;
   color: #282828
 }
@@ -94,7 +92,7 @@ td {
   border-bottom: 1px solid #4f5752;
   border-collapse: collapse;
   background-color: rgb(222, 229, 210);
-  padding: 1em;
+  padding: 1rem;
   color: #222
 }
 
