@@ -1,16 +1,16 @@
 <template>
     <div class="form-group">
         <label>{{ title }}</label>
+        <div class="date-select">
+            <select name="monthSelect" id="monthSelect" @change="$emit('value-changed', currentValue)"
+                :value="selectedMonth">
+                <option v-for="(month, index) in months" :key="index" :value='index'>{{ month }}</option>
+            </select>
+            <select name="yearSelect" id="yearSelect" @change="$emit('value-changed', currentValue)" :value="selectedYear">
+                <option v-for="(year, index) in years" :key="index" :value='year'>{{ year }}</option>
+            </select>
+        </div>
 
-        <label for="monthSelect">Miesiąc:</label>
-        <select name="monthSelect" id="monthSelect" @change="$emit('value-changed', currentValue)" v-model="selectedMonth">
-            <option v-for="(month, index) in months" :key="index" :value='index'>{{ month }}</option>
-        </select>
-
-        <label for="yearSelect">Rok:</label>
-        <select name="yearSelect" id="yearSelect" @change="$emit('value-changed', currentValue)" v-model="selectedYear">
-            <option v-for="(year, index) in years" :key="index" :value='year'>{{ year }}</option>
-        </select>
     </div>
 </template>
 
@@ -22,20 +22,15 @@ export default {
             months: ['Styczeń', 'Luty', 'Marzec',
                 'Kwiecień', 'Maj', 'Czerwiec',
                 'Lipiec', 'Sierpień', 'Wrzesień',
-                'Październik', 'Listopad', 'Grudzień'],
-            selectedMonth: this.initialMonth,
-            selectedYear: this.selectedYear
+                'Październik', 'Listopad', 'Grudzień']
+
         }
     },
     props: {
         title: String,
-        initialMonth: {
-            type: Number,
-            default: new Date().getMonth()
-        },
-        initialYear: {
-            type: Number,
-            default: new Date().getYear()
+        selectedDate: {
+            type: Date,
+            default: new Date()
         }
 
     },
@@ -47,7 +42,10 @@ export default {
         },
         currentValue() {
             return new Date(this.selectedYear, this.selectedMonth)
-        }
+        },
+        selectedMonth() { return this.selectedDate.getMonth() },
+        selectedYear() { return this.selectedDate.getFullYear() }
+
     },
 
 }
