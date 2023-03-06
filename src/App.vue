@@ -112,11 +112,17 @@ export default {
         } else if (this.opType == "fixedOp") {
           overpayment = this.opAmount
         }
-        if (this.overPayments !== undefined) {
-          overpayment = Number(this.overPayments['OP' + i]) || overpayment
+        if (this.overPayments['OP' + i] !== undefined) {
+          overpayment = Number(this.overPayments['OP' + i])
         }
 
-        const balance = loanAmount - principalPayment - overpayment;
+        let balance = loanAmount - principalPayment - overpayment;
+        //trim overpayment amount if balance is negative
+        if ( balance < 0) {
+          overpayment = loanAmount - principalPayment
+          balance = 0
+        } 
+
         const payment = {
           paymentNumber: i,
           monthName: monthName,
@@ -128,14 +134,14 @@ export default {
         };
         payments.push(payment);
         loanAmount = balance;
-        if (loanAmount < 0) { break }
+        if (loanAmount <= 0) { break }
 
       }
 
       return payments;
     },
     remainingPaymentsChange(ev) {
-      this.remainingPayments = ev.target.value
+      this.remainingPayments = parseInt(ev.target.value)
       this.lastPaymentDate = addMonthsToDate(this.nextPaymentDate, this.remainingPayments)
 
     },
