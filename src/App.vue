@@ -3,51 +3,69 @@
     <h1 v-text="page_title"></h1>
 
     <form @submit.prevent="onSubmit" novalidate>
-      <div class="row">
-        <div class="form-group">
-          <label class="row " for="loan-amount">Kwota kredytu:</label>
-          <input class="row" type="number" id="loan-amount" name="loan-amount" v-model="loanAmount" step="10000" required>
-        </div>
-        <div class="form-group">
-          <label class="row" for="interest-rate ">Oprocentowanie:</label>
-          <input class="row" type="number" id="interest-rate" name="interest-rate" v-model="interestRate" step="0.01"
-            required>
+
+      <div class="form-group">
+
+        <label class="left-label " for="loan-amount">Kwota kredytu:</label>
+        <div class="input-field">
+          <input type="number" id="loan-amount" name="loan-amount" v-model="loanAmount" step="10000" required>
         </div>
 
-        <div class="form-group">
-          <label class="row"> Data nastepnej raty:</label>
-          <MonthYearSelector title="" @value-changed="nextPaymentDateChange" :initial-date="nextPaymentDate" />
-        </div>
-
-        <div class="form-group">
-          <label class="row"> Data ostatniej raty:</label>
-          <MonthYearSelector title="" @value-changed="lastPaymentDateChange" :initial-date="lastPaymentDate" />
-          <span>lub </span><label for="remaining-payments">liczba pozostałych rat:</label><input type="number"
-            id="remaining-payments" name="remaining-payments" v-model="remainingPayments"
-            @change="remainingPaymentsChange">
-        </div>
-
-        <div class="form-group">
-          <label class="row"> Opcje nadpłaty:</label>
-          <div class="form-group">
-            <input type="radio" name="OverpayOptions" id="fixedOverpay" v-model="opType"
-              value="fixedOp">
-            <label class="form-check-label" for="fixedOverpay">
-              Nadpłacaj taką samą kwotę
-            </label>
-            <input type="number" id="op-amount" v-model="opAmount" name="op-amount">
-          </div>
-        </div>
-        <div class="form-group">
-          <input type="radio" name="OverpayOptions" id="variableOverpay" v-model="opType" value="variableOp">
-          <label class="form-check-label" for="variableOverpay">
-            Nadpłacaj kwotę aby rata całkowita była stała w każdym miesiącu
-          </label>
-          <input type="number" id="op-amount" v-model="opAmount" name="op-amount">
+      </div>
+      <div class="form-group">
+        <label class="left-label" for="interest-rate ">Oprocentowanie:</label>
+        <div class="input-field">
+          <input type="number" id="interest-rate" name="interest-rate" v-model="interestRate" step="0.01" required>
         </div>
       </div>
 
-      <button type="submit">Calculate</button>
+      <div class="form-group">
+        <div>
+          <label class="left-label"> Data nastepnej raty:</label>
+          <div class="input-field">
+            <MonthYearSelector title="" @value-changed="nextPaymentDateChange" :initial-date="nextPaymentDate" />
+          </div>
+        </div>
+
+
+        <div>
+          <label class="left-label"> Data ostatniej raty:</label>
+          <div class="input-field">
+            <MonthYearSelector title="" @value-changed="lastPaymentDateChange" :initial-date="lastPaymentDate" />
+          </div>
+        </div>
+        <div>
+          <label class="left-label" for="remaining-payments">lub liczba pozostałych rat:</label>
+          <div class="input-field">
+            <input type="number" id="remaining-payments" name="remaining-payments" v-model="remainingPayments"
+              @change="remainingPaymentsChange">
+          </div>
+        </div>
+      </div>
+      <div class="form-group">
+        <div>
+          <label class="left-label"> Opcje nadpłaty:</label>
+          <div class="input-field">
+            <input type="radio" name="OverpayOptions" id="fixedOverpay" v-model="opType" value="fixedOp">
+            <label class="form-check-label" for="fixedOverpay">
+              Nadpłacaj taką samą kwotę
+            </label>
+            <input type="number" id="op-amount" v-model="opAmount" name="op-amount" v-if="opType == 'fixedOp'">
+          </div>
+        </div>
+
+        <div>
+          <label class="left-label"></label>
+          <div class="input-field">
+            <input type="radio" name="OverpayOptions" id="variableOverpay" v-model="opType" value="variableOp">
+            <label class="form-check-label" for="variableOverpay">
+              Nadpłacaj kwotę aby płatność całkowita była stała w każdym miesiącu
+            </label>
+            <input type="number" id="op-amount" v-model="opAmount" name="op-amount" v-if="opType == 'variableOp'">
+          </div>
+        </div>
+      </div>
+      <button type="submit">Oblicz</button>
     </form>
   </div>
 
@@ -118,10 +136,10 @@ export default {
 
         let balance = loanAmount - principalPayment - overpayment;
         //trim overpayment amount if balance is negative
-        if ( balance < 0) {
+        if (balance < 0) {
           overpayment = loanAmount - principalPayment
           balance = 0
-        } 
+        }
 
         const payment = {
           paymentNumber: i,
@@ -175,8 +193,13 @@ export default {
 
 <style>
 * {
-  font-size: 1rem;
+
   box-sizing: border-box;
+}
+
+html {
+  font-size: 14px;
+
 }
 
 #app {
@@ -188,21 +211,11 @@ export default {
   margin-top: 0.2em;
 }
 
-.row {
-  display: flex;
-  padding: 0 1rem;
-}
-
-.col {
-  flex: 35%;
-  float: left;
-  padding: 0 1rem;
-}
-
-.row:after {
-  content: "";
-  display: table;
-  clear: both;
+form {
+  width: min(100%, 950px);
+  border-radius: 10px;
+  border: 1px solid rgb(184, 200, 200);
+  padding: 0.3rem 0.1rem;
 }
 
 .text-left {
@@ -213,36 +226,27 @@ export default {
   text-align: right
 }
 
-
-
-
 div {
-
-  margin-bottom: .5rem;
+  margin: .15rem .15rem;
 }
 
-form {
-  font-family: Arial, sans-serif;
-  width: 75%;
+
+.left-label {
+  display: inline-block;
+  text-align: right;
+  width: 25%;
+
+  margin-top: .3rem;
 }
 
-/* Style form labels */
-label {
+.input-field {
+  display: inline-block;
+  margin-left: 1rem;
+  border-radius: 4px;
+  font-family: inherit;
 
-  margin-bottom: 5px;
 }
 
-/* Style form input fields */
-input[type="number"],
-select {
-  padding: 5px;
-  width: 200px;
-  border-radius: 5px;
-  border: 1px solid #ccc;
-  box-sizing: border-box;
-  font-size: 1em;
-  display: block;
-}
 
 /* Style form select boxes */
 select {
@@ -252,7 +256,7 @@ select {
 }
 
 /* Style form submit button */
-input[type="submit"] {
+button[type="submit"] {
   background-color: #4CAF50;
   color: white;
   padding: 10px 15px;
@@ -260,5 +264,19 @@ input[type="submit"] {
   border-radius: 5px;
   cursor: pointer;
   display: block;
+  margin: 1rem auto;
+}
+
+input[type="number"] {
+  text-align: right;
+  width: max(15%, 90px);
+}
+
+.form-group {
+  padding: .4rem 0;
+}
+
+.form-group:nth-child(odd) {
+  background-color: rgb(218, 240, 240)
 }
 </style>

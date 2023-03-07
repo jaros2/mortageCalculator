@@ -1,15 +1,12 @@
 <template>
-    <div class="form-group">
+    <div class="date-select">
         <label>{{ title }}</label>
-        <div class="date-select">
-            <select name="monthSelect" id="monthSelect" v-model="selectedMonth">
-                <option v-for="(month, index) in months" :key="index" :value='index'>{{ month }}</option>
-            </select>
-            <select name="yearSelect" id="yearSelect"  v-model="selectedYear">
-                <option v-for="(year, index) in years" :key="index" :value='year'>{{ year }}</option>
-            </select>
-        </div>
-
+        <select name="monthSelect" id="monthSelect" v-model="selectedMonth">
+            <option v-for="(month, index) in months" :key="index" :value='index'>{{ month }}</option>
+        </select>
+        <select name="yearSelect" id="yearSelect" v-model="selectedYear">
+            <option v-for="(year, index) in years" :key="index" :value='year'>{{ year }}</option>
+        </select>
     </div>
 </template>
 
@@ -75,4 +72,9 @@ export default {
 }
 </script>
 
-<style></style>
+<style>
+.date-select>label,
+.date-select>select {
+    display: inline-block;
+}
+</style>

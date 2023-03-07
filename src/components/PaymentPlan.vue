@@ -69,7 +69,7 @@ export default {
 }
 </script>
 
-<style>
+<style scoped>
 .payment-plan {
   width: 70rem;
 }
@@ -89,21 +89,25 @@ table,
 th,
 td {
   border: none;
-  border-bottom: 1px solid #4f5752;
+  border-bottom: 1px solid #c1c5c3;
   border-collapse: collapse;
-  background-color: rgb(222, 229, 210);
+  background-color: rgb(218, 240, 240);
   padding: 1rem;
   color: #222
 }
 
 
 .payment-plan tbody tr:nth-child(odd) td {
-  background-color: rgb(243, 255, 244);
+  background-color: white;
   color: #222
 }
 
 form.payment-plan td.form-payment-cell input {
   text-align: right;
-  color: #222
+  color: rgb(164, 164, 164)
+}
+
+input[type="number"] {
+    text-align: right;
 }
 </style>
